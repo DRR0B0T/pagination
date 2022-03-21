@@ -1,23 +1,52 @@
-import logo from './logo.svg';
+import React, {useState, useEffect} from 'react'
 import './App.css';
+import axios from "axios";
+import Countries from "./components/Countries";
+import Pagination from "./components/Pagination";
 
 function App() {
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [countriesPerPage] = useState(10);
+
+  useEffect(() => {
+    const getCountries = async () => {
+      setLoading(true)
+      const res = await axios.get('https://restcountries.com/v2/all')
+      setCountries(res.data)
+      setLoading(false)
+    }
+    getCountries()
+  }, []);
+
+  const lastCountryIndex = currentPage *  countriesPerPage
+  const firstCountryIndex = lastCountryIndex - countriesPerPage
+  const currentCountry = countries.slice(firstCountryIndex, lastCountryIndex)
+
+  const paginate = pageNumber => setCurrentPage(pageNumber)
+
+  const prevPage = () => setCurrentPage(prev=> prev - 1)
+  const nextPage = () => setCurrentPage(prev=> prev + 1)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container mt-5">
+      <h1 className='text-primary'>Countries</h1>
+      <Countries
+      countries={currentCountry}
+      loading={loading}
+      />
+      <Pagination
+      countriesPerPage={countriesPerPage}
+      totalCountries={countries.length}
+      paginate={paginate}
+      />
+      <button
+        onClick={prevPage}
+        className='btn btn-primary'>Prev page</button>
+      <button
+        onClick={nextPage}
+        className='btn btn-primary ms-2'>Next page</button>
     </div>
   );
 }
